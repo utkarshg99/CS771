@@ -1,0 +1,392 @@
+\documentclass[a4paper,12pt]{article}
+\setlength{\parindent}{0pt}
+
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{mlsubmit}
+
+\begin{document}
+
+\initmlsubmision{1} % assignment number
+{Utkarsh Gupta}   % your name
+{180836}	% your roll number
+
+\begin{mlsolution}
+
+The required Loss Function of $\ell_1$ to optimize is given as:
+
+\begin{center}
+$L(\vw) = \sum_{n=1}^N|y_n-\vw^T\vx_n|+\lambda||\vw||_1$
+\end{center}
+
+We know that $\ell_1$ norms as well as the absolute function $|\vw|$ are convex function. If $f(x)$ is convex, $f(ax+b)$ is also convex $\implies |y_n-\vw^T\vx_n|$ is convex. Moreover, non-negative weighted sums of convex functions are also convex. Therefore, $L(\vw)$ is a convex function. \\
+
+Let $\partial L_n(\vw)$ and $\partial\,\ell_1(\vw)$ be the sub-differential of $|y_n-\vw^T\vx_n|$ and $||\vw||_1$ respectively. By using the sum property of sub-differentials, we have $\partial L(\vw) = \sum_{n=1}^N\partial L_n(\vw) + \lambda\partial\,\ell_1(\vw)$. \\
+
+Using the affine transformation rule, $\partial\,L_n(\vw) = {-}\vx_n\partial\,|\vt|$ where $\vt=y_n{-}\vw^T\vx_n$, which gives:
+
+\[
+  \partial L_n(\vw) =
+  \begin{cases}
+  -\vx_n & \text{if $y_n{-}\vw^T\vx_n>0$} \\
+  \vx_n & \text{if $y_n{-}\vw^T\vx_n<0$} \\
+  k\vx_n & \text{if $y_n{-}\vw^T\vx_n=0$, where k $\in [-1, +1]$}
+  \end{cases}
+\]\\
+
+The $\ell_1$ norm of a $D-dimensional$ vector is the cartesian product of D-independent absolute functions ($B_d$). In other words, $B_d$ corresponds to the $d^{th}$ entry of $\partial\ell_1$. Thus, $\partial\,\ell_1(\vw) = \prod_{d=1}^{D}B_d$ such that $B_d = 
+\partial\,|w_d|$.
+
+\[
+  B_d =
+  \begin{cases}
+  \{-1\} & \text{if $w_d>0$} \\
+  \{1\} & \text{if $w_d<0$} \\
+  \{k\} & \text{if $w_d=0$, where k $\in [-1, +1]$}
+  \end{cases}
+\]\\
+
+Therefore, we now get the required sub-differential $\partial L(\vw)$ which gives the general expression of the sub-gradients. Setting the constants (randomly or otherwise) gives us a sub-gradient.
+
+\[
+\boxed{
+\partial L(\vw) = \bc{ \sum_{n=1}^{N} a_n\vx_n + \lambda \vb\cond a_n \in \partial\,|y_n-\vw^T\vx_n|\;\&\;\vb \in \partial\,\ell_1(\vw)}
+}
+\]
+
+% \begin{algorithm}[H]
+% \DontPrintSemicolon
+% \SetAlgoLined
+% \SetKwFunction{FAbs}{abs\_grad}
+% \SetKwFunction{FSub}{sub\_grad}
+% \SetKwProg{Fn}{Function}{:}{\KwRet}
+% \Fn{\FAbs{$x$}}{
+%     \uIf{$x>0$}{ \Return{$1$}}
+%     \uElseIf{$x<0$}{\Return{$-1$}}
+%     \Else{\Return{$k$} \hspace{10pt} \tcp*[h]{$k \in [-1,1]$}}
+% }
+% \SetKwProg{Fn}{Function}{:}{\KwRet $\vg_{sub}(\vw)$}
+% \Fn{\FSub{$\vw$, $\vx$, $\vy$, $\lambda$}}{
+%     $\vg_{sub}(\vw) :=$ zero $D$ x 1 vector \\ 
+    
+%     \For{$n= 1$ to $N$}{
+%         $\vg_{sub}(\vw)$ += $-\vx_n \: \cdot$ \FAbs{$y_n - \vw^T\vx_n$}
+%     }
+%     $\vb :=$ empty $D$ x 1 vector \\
+%     \For{$d=1$ to $D$}{
+%         $\vb$[$d$] = $\lambda \: \cdot$ \FAbs{$w_d$}
+%     }
+%     $\vg_{sub}(\vw)$ += $\vb$ \\ 
+% }
+% \caption{Sub-gradient for absolute loss regression with $\ell_1$ regularization}
+% \end{algorithm}
+
+\end{mlsolution}
+
+\begin{mlsolution} 
+
+\begin{equation*}
+\hat{\vw} = \text{arg} \min\limits_{\vw} \E{ \sum\limits_{n=1}^{N}\br{y_n-\vw^T\Tilde{\vx}_n}^2}
+\end{equation*}
+Simplifying the objective and applying Linearity of Expectations, we get:
+\begin{equation*}
+\Tilde{L}(\vw) = \sum\limits_{n=1}^N\E{y_n^2 + \br{\vw^T\Tilde{\vx}_n}^2 - 2y_n\vw^T\Tilde{\vx}_n}
+\end{equation*}
+
+Also, $\bE{\bs{y_n^2 + \br{\vw^T\Tilde{\vx}_n}^2 - 2y_n\vw^T\Tilde{\vx}_n}}=y_n^2 -2y_n\bE\bs{\vw^T\Tilde{\vx}_n} + \bE\bs{\br{\vw^T\Tilde{\vx}_n}^2}
+$.\\
+
+Now, $\vw^T\Tilde{\vx}_n=\sum_{d=1}^Dw_d\Tilde{x}_{nd}=\sum_{d=1}^Dw_dx_{nd}r_{nd}$, where $r_{nd}\sim\textsc{Bernoulli}(p)$ is the mask bit.\\
+
+So, $\E{\vw^T\Tilde{\vx}_n} = \sum_{d=1}^Dw_dx_{nd}\E{r_{nd}}=p\sum_{d=1}^Dw_dx_{nd} = p\vw^T\vx_n$.\\
+
+All mask bits are independent so, $\E{r_{ni}r_{nj}}=\E{r_{ni}}\E{r_{nj}}=p^2$ and $\E{r_{nd}^2}=p$.\\
+
+$\therefore \E{\br{\vw^T\Tilde{\vx}_n}^2} = \sum_{d=1}^Dw_d^2x_{nd}^2p + 2\sum_{i=1}^D\sum_{j=1}^Dw_iw_jx_{ni}x_{nj}p^2 = p^2(\vw^T\vx_n)^2+p(1-p)\sum_{d=1}^Dw_d^2x_{nd}^2$.\\
+
+Hence, we obtain $\E{\br{y_n-\vw^T\Tilde{\vx}_n}^2} = y_n^2 -2y_np\vw^T\vx_n + p^2(\vw^T\vx_n)^2+p(1-p)\sum_{d=1}^Dw_d^2x_{nd}^2$.\\
+
+The required regularised Loss Function $\Tilde{L}(\vw)$:
+
+\begin{equation*}
+\Tilde{L}(\vw) = \sum\limits_{n=1}^N\br{y_n-p\vw^T\vx_n}^2+p(1-p)\sum\limits_{n=1}^N\sum\limits_{d=1}^Dw_d^2x_{nd}^2
+\end{equation*}
+
+Since, $\vw \in \bR^D$ and $\text{arg} \min\limits_{\vw}\Tilde{L}(\vw) = \text{arg} \min\limits_{\vw}\Tilde{L}(\frac{\vw}{p})$ we can replace $\vw$ by $\frac{\vw}{p}$, without the loss of generality. Also, $\sum\limits_{d=1}^Dw_d^2x_{nd}^2 = \vw^T\diag\br{\vx_n\vx_n^T}\vw$. $\diag\br{\vx_n\vx_n^T}$ is a diagonal matrix with each diagonal entry as $x_{nd}^2$.
+
+\[
+\boxed
+{
+    \Tilde{L}(\vw) = \sum\limits_{n=1}^N\br{y_n-\vw^T\vx_n}^2+\frac{1-p}{p}\sum\limits_{n=1}^N\vw^T\diag\br{\vx_n\vx_n^T}\vw
+}
+\]
+
+In matrix form, the same function can be written as:
+
+\[
+\boxed
+{
+    \Tilde{L}(\vw) = ||\vy-\vX\vw||^2+\br{\frac{1-p}{p}}\vw^T\diag\br{\vX^T\vX}\vw
+}
+\]
+
+\end{mlsolution}
+
+\begin{mlsolution}
+
+To Verify: $\sum_{n=1}^N\sum_{m=1}^M\br{y_{nm}-\vw_m^T\vx_n}^2 = \textsc{trace}\bs{\br{\vY-\vX\vW}^T\br{\vY-\vX\vW}}$.
+
+\begin{equation*}
+    \bs{\vY - \vX\vW}_{ij} = y_{ij} - \sum_{d=1}^Dx_{id}w_{dj} \qquad \bs{\vY - \vX\vW}_{ij}^T = y_{ji} - \sum_{d=1}^Dx_{di}w_{jd}
+\end{equation*}
+\begin{equation*}
+    \bs{\br{\vY - \vX\vW}^T\br{\vY - \vX\vW}}_{ij} = \sum_{n=1}^N\bs{\br{y_{ni} - \sum_{d=1}^Dx_{nd}w_{di}}\br{y_{nj} - \sum_{d=1}^Dx_{nd}w_{dj}}}
+\end{equation*}
+\begin{equation*}
+    \implies \textsc{trace}\bs{\br{\vY-\vX\vW}^T\br{\vY-\vX\vW}} = \sum_{m=1}^M\bs{\br{\vY-\vX\vW}^T\br{\vY-\vX\vW}}_{mm}
+\end{equation*}
+\begin{equation*}
+    = \sum_{n=1}^N\sum_{m=1}^M (y_{nm} - \sum_{d=1}^Dx_{nd}w_{dm} )^2 = \sum_{n=1}^N\sum_{m=1}^M (y_{nm} - \vw_m^T\vx_n)^2
+\end{equation*}
+\begin{center}
+    \textsc{Hence Verified}.
+\end{center}
+
+Now, as described in the question, we need to apply alternate optimisation algorithm on the objective $L(\vB, \vS) = \textsc{trace}\bs{\br{\vY-\vX\vB\vS}^T\br{\vY-\vX\vB\vS}}$.
+
+\begin{equation*}
+    \bc{\hat{\vB}, \hat{\vS}} = \text{arg} \min\limits_{\vB, \vS} \textsc{trace}\bs{\br{\vY-\vX\vB\vS}^T\br{\vY-\vX\vB\vS}}
+\end{equation*}
+
+We know that $\textsc{trace}\bs{\br{\vY-\vX\vB\vS}^T\br{\vY-\vX\vB\vS}} = \textsc{trace}\bs{\br{\vY-\vX\vB\vS}\br{\vY-\vX\vB\vS}^T}$. Using this, and equation $119$ from Matrix Cookbook, we get:
+\begin{equation*}
+    \triangledown_{\vB}L(\vB, \vS) = -2\vX^T\br{\vY - \vX\vB\vS}\vS^T
+\end{equation*}
+\begin{equation*}
+    \triangledown_{\vS}L(\vB, \vS) = -2\vB^T\vX^T\br{\vY - \vX\vB\vS}
+\end{equation*}
+
+The objective $L_{\vB}(\vS)$ corresponding to $\triangledown_{\vS}L(\vB, \vS) = \triangledown L_{\vB}(\vS)$ is clearly convex as it reduces to single-output regression if we assume $\vX\vB = \vG$. So, we can set the derivative to $0$ and obtain $\cS$.
+
+\begin{equation*}
+    [(\vX\vB)^T(\vX\vB)]\cS = (\vX\vB)^T\vY
+\end{equation*}
+\begin{equation*}
+    \boxed
+    {
+    \cS = \bs{\br{\vX\vB}^T\br{\vX\vB}}^{-1}\br{\vX\vB}^T\vY
+    }
+\end{equation*}
+
+In order to get $L_{\vS}(\vB)$, we can try to write $\vY=\vH\vS$ and $\vE = \vH - \vX\vB$, which yields:
+\begin{equation*}
+    L_{\vS}(\vB) = \textsc{trace}\bs{\vS^T\br{\vH-\vX\vB}^T\br{\vH-\vX\vB}\vS}
+    %= \textsc{trace} \bs{\vS\vS^T\vE^T\vE}
+\end{equation*}
+
+% Let's look at the $k^{th} D\text{x}D$ Hessian for $k= 1, 2, \dots, K$.\\
+% $e_{ij} = z_{ij} - \sum_{d=1}^Dx_{id}b_{dj}$, $\bs{\vE^T\vE}_{ij} = \sum_{n} e_{ni}e_{nj}$ and $\bs{\vS\vS^T}_{ij} = \sum_{m} s_{im}s_{jm}$.
+
+% \begin{equation*}
+%     L_{\vS}^k(\vB) = \sum_{k'}\sum_{m}s_{km}s_{k'm}\sum_ne_{nk'}e_{nk}
+% \end{equation*}
+% \begin{equation*}
+%     \triangledown^2 L_{\vS}^k(\vB)_{ij} = \sum_{k'}\sum_{m}s_{km}s_{k'm}\sum_n \frac{\partial^2}{\partial b_{ik} \partial b_{jk}} e_{nk'}e_{nk}
+% \end{equation*}
+% \begin{equation*}
+%     \frac{\partial^2}{\partial b_{ik} \partial b_{jk}} e_{nk'}e_{nk} = 2x_{ni}x_{nj}\delta_{k'k}
+% \end{equation*}
+% \begin{equation*}
+%     \triangledown^2 L_{\vS}^k(\vB)_{ij} = 2\sum_{m}s_{km}s_{km}\sum_nx_{ni}x_{nj} = 2\bs{\vX^T\vX}_{ij}\bs{\vS\vS^T}_{kk}
+% \end{equation*}
+
+% So, $\triangledown^2 L_{\vS}^k(\vB) = 2\bs{\vS\vS^T}_{kk}\vX^T\vX$. Since, a vector valued function is convex only when each of it's individual components are convex, $L_{\vS}(\vB)$ will be convex iff all the diagonal elements of $\vS\vS^T$ are non-negative. This is indeed the case as, $\vS\vS^T$ is PSD $\implies \triangledown^2 L_{\vS}^k(\vB)$ is also PSD.\\ 
+
+By observing the form of the partial objective $L_{\vS}(\vB)$ we can see that it is convex and $\cB$ can be obtained by setting $\triangledown_{\vB}L(\vB, \vS) = \triangledown L_{\vS}(\vB)$ to $0$.
+\begin{equation*}
+    \vX^T\br{\vY - \vX\cB\vS}\vS^T = 0 \implies \vX^T\vY\vS^T = \vX^T\vX\cB\vS\vS^T
+\end{equation*}
+\begin{equation*}
+    \boxed
+    {
+    \cB = \br{\vX^T\vX}^{-1}\vX^T\vY\vS^T\br{\vS\vS^T}^{-1}
+    }
+\end{equation*}
+
+After multiple iterations, $\cB\;\&\;\cS$ will converge to give $\hat{\vB}\;\&\;\hat{\vS}$.\\
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetAlgoLined
+    t $:=0$ \\
+    Initialise $\vB^{(0)}\;\&\;\vS^{(0)}$ \\
+    \Repeat(){convergence}{
+        $\vB^{(t+1)} = \br{\vX^T\vX}^{-1}\vX^T\vY{\vS^{(t)}}^T\br{\vS^{(t)}{\vS^{(t)}}^T}^{-1}$\\
+        $\vS^{(t+1)} = \bs{\br{\vX\vB^{(t+1)}}^T\br{\vX\vB^{(t+1)}}}^{-1}\br{\vX\vB^{(t+1)}}^T\vY$\\
+        t $:=$ t+1
+    }
+    \Return{$\vB^{(t)}\;\&\;\vS^{(t)}$}
+    \caption{Alternating Optimisation to get $\hat{\vB}\;\&\;\hat{\vS}$}
+\end{algorithm}
+
+\bigskip As far as complexity is concerned, calculating $\hat{\vS}$ is easier than calculating $\hat{\vB}$. This is because, the size of matrix inverted in $\hat{\vS}$ can be small if $K$ is chosen to be small. On the other hand, the size of matrix inverted in $\hat{\vB}$ will be large if $D$ is large.
+
+\end{mlsolution}
+
+\begin{mlsolution}
+
+The Ridge Regression problem has already been discussed in class. The Loss Function $L(\vw)$ is given by: $L(\vw) = \text{arg}\min\limits_{\vw}\bc{\frac{1}{2}\br{\vy-\vX\vw}^T\br{\vy-\vX\vw}+\frac{\lambda}{2}\vw^T\vw}$.
+It is convex, twice differentiable, $\triangledown L(\vw) = \br{\vX^T\vX+\lambda\vI_D}\vw - \vX^T\vy$ and $\triangledown^2 L(\vw) = \vX^T\vX+\lambda\vI_D$. Moreover, the optimal weight $\hat{\vw}$ is given by $\hat{\vw} = \br{\vX^T\vX+\lambda\vI_D}^{-1}\vX^T\vy$.\\
+
+Newton's Method iteratively minimizes the second-order (quadratic) approximation ($L_2$) of the original Loss function.
+
+\begin{center}
+    $L_2(\vw, \vw^{(t)}) = L(\vw^{(t)}) + \triangledown L(\vw^{(t)})^T\br{\vw-\vw^{(t)}} + \frac{1}{2}\br{\vw-\vw^{(t)}}\triangledown^2 L(\vw^{(t)})^T\br{\vw-\vw^{(t)}}$
+\end{center}
+
+The next weight vector can be found using $\vw^{(t+1)} = \text{arg} \min\limits_{\vw}L_2(\vw, \vw^{(t)})$. Now we have, $\triangledown L_2(\vw) = \triangledown L(\vw^{(t)}) + \triangledown^2 L(\vw^{(t)})\br{\vw-\vw^{(t)}}$ and $\triangledown^2 L_2(\vw) = \triangledown^2 L(\vw^{(t)})$. For $\lambda > 0$, $\triangledown^2 L_2(\vw)$ is a Positive Semi-Definite matrix $\implies L_2(\vw, \vw^{(t)})$ is convex.\\
+
+Setting $\triangledown_\vw L_2(\vw) = 0$, the vector minimizing $L_2(\vw, \vw^{(t)})$ is given by $\vw^{(t+1)} = \vw^{(t)} - \br{\triangledown^2 L(\vw^{(t)})}^{-1}\triangledown L(\vw^{(t)})$. This is also the required general update-step equation. Substituting the derivatives for the given $L(\vw)$ we get:
+
+\[
+\boxed
+{
+    \vw^{(t+1)} = \vw^{(t)} - \br{\vX^T\vX+\lambda\vI_D}^{-1}\bc{\br{\vX^T\vX+\lambda\vI_D}\vw^{(t)} - \vX^T\vy}
+}
+\]
+
+Upon simplification, we get $\vw^{(t+1)} = \br{\vX^T\vX+\lambda\vI_D}^{-1}\vX^T\vy$. This is the expected closed form solution and independent of $\vw^{(t)}$. Thus, Newton's Method converges to the optimal solution in a single iteration in the given problem. 
+This happens because the loss function is smooth and quadratic.
+
+\end{mlsolution}
+	
+\begin{mlsolution}
+
+Let $K=6$ for this question. All observations are assumed to be i.i.d. The parameter we need to estimate is $\pmb{\pi} = \bs{\pi_1, \pi_2, \dots, \pi_K}$. Let us first get the Maximum Likelihood Estimate or $\pmb{\pi}_{MLE}$. The likelihood we are going to use is Multinoulli.
+
+\begin{equation*}
+    p(y | \pmb{\pi}) = \prod_{k=1}^{K}\pi_k^{N_k}
+\end{equation*}
+
+$N_k$ corresponds to the number of times $k$ showed up on the dice. To get the MLE estimate, we can minimize the negative log-likelihood subjected to the condition $\sum_{k=1}^K \pi_k = 1$. This is a constrained optimisation problem, so we use Lagrangian Optimisation.
+
+\begin{equation*}
+    \cL(\pmb{\pi}, \lambda) = -\sum_{k=1}^K N_klog\br{\pi_k} + \lambda\br{\sum_{k=1}^K\pi_k - 1}
+\end{equation*}
+
+We know that $-log(x)$ is a convex function, and non-negatively weighted sums of convex function is also convex. Therefore, the above Lagrangian is surely convex for $\lambda>0$. Now, the optimal solution to $\text{arg} \min\limits_{\pmb{\pi}} \cL(\pmb{\pi}, \lambda)$ can be found by equating $\triangledown \cL(\pmb{\pi}, \lambda)$ to zero.
+
+\begin{equation*}
+    \pmb{\pi}_{MLE} = \bs{\frac{N_1}{N}, \frac{N_2}{N}, \dots, \frac{N_K}{N}}
+\end{equation*}
+
+where $N = \sum_{k=1}^K N_k$. For MAP Estimation and finding Posterior Distribution, the appropriate conjugate prior ($p(\pmb{\pi})$) would be \textbf{Dirchlet} distribution (similar to how we took Beta prior in case of Bernoulli likelihood).
+The Posterior distribution is given by $p(\pmb{\pi}|y) = \frac{p(y|\pmb{\pi})p(\pmb{\pi})}{p(y)}$.
+
+\begin{equation*}
+    \pmb{\pi}_{MAP} = \text{arg} \max\limits_{\pi_k} p(\pmb{\pi}|y)
+\end{equation*}
+
+subjected to $\sum_{k=1}^K \pi_k = 1$. Dirchlet distribution is given by $p(\pmb{\pi} | \pmb{\alpha})$. $\pmb{\alpha} = \bs{\alpha_1, \alpha_2, \dots, \alpha_K}$ is a constant hyper-parameter vector.
+
+\begin{equation*}
+    p(\pmb{\pi} | \pmb{\alpha}) = \frac{\Gamma\br{\sum_{k=1}^K\alpha_k}}{\prod_{k=1}^K \Gamma\alpha_k} \prod\limits_{k=1}^K \pi_k^{\alpha_k-1}
+\end{equation*}
+
+The MAP objective can be simplified by taking negative log of the posterior. Minimizing the objective will yield the required MAP solution as, the Lagrangian will be convex and the global optima obtained will therefore, be a minima.
+
+\begin{equation*}
+    -log(p(\pmb{\pi} | y)) = log(p(y)) -log(\frac{\Gamma\br{\sum_{k=1}^K\alpha_k}}{\prod_{k=1}^K \Gamma\alpha_k}) -\sum\limits_{k=1}^K(\alpha_k-1)log(\pi_k) -\sum\limits_{k=1}^K(N_k)log(\pi_k)
+\end{equation*}
+
+ignoring the terms that don't depend on $\pi_k$ and writing the Lagrangian for the constrained optimisation problem at hand:
+
+\begin{equation*}
+    \cL(\pmb{\pi}, \lambda) = -\sum_{k=1}^K (N_k+\alpha_k-1)log\br{\pi_k} + \lambda\br{\sum_{k=1}^K\pi_k - 1}
+\end{equation*}
+
+Using arguments similar to the ones made for MLE problem, we know that the Lagrangian is convex for $\lambda>0$. Let $\alpha = \sum_{k=1}^K \alpha_k$,
+
+\begin{equation*}
+    \frac{\partial}{\partial \pi_k} \cL(\pmb{\pi}, \lambda) = -\frac{N_k+\alpha_k-1}{\pi_k}+\lambda = 0
+\end{equation*}
+\begin{equation*}
+    \implies\lambda=\frac{N_k+\alpha_k-1}{\pi_k} \implies \pi_k=\frac{N_k+\alpha_k-1}{\lambda}
+\end{equation*}
+Substituting $\pi_k$ into the constraint $\sum_{k=1}^K \pi_k = 1$ we get $\lambda=N+\alpha-K$. Hence, we get the required MAP parameter (global minima of the constrained MAP objective),
+\begin{equation*}
+    \pmb{\pi}_{MAP} = \bs{\frac{N_1+\alpha_1-1}{N+\alpha-K}, \frac{N_2+\alpha_2-1}{N+\alpha-K}, \dots, \frac{N_K+\alpha_K-1}{N+\alpha-K}}
+\end{equation*}
+
+\begin{center}
+    \noindent\fbox{\parbox{\textwidth}{\strut The MAP estimate would be better than the MLE estimate in the situations where classes do not adequately represent the actual distribution, which could happen when $N$ is too small or $N_k$s are disproportionate (for example, in the cases where we have little to no examples from some classes).\\\\
+    In such cases, MAP estimate makes better predictions as it has access to the information contained in $\pmb{\alpha}$. Here, it ($\alpha_k-1$) can be interpreted as the number of times the $k^{th}$ number showed up on the dice before the experiment began.}}
+\end{center}
+
+Now, to get the full Posterior Distribution, we require the marginal likelihood $p(y)$.
+
+\begin{equation*}
+    p(y) = \int p(\pmb{\pi})p(y|\pmb{\pi}) d\pmb{\pi}
+\end{equation*}
+\begin{equation*}
+    \implies p(y) = \int\limits_{\sum_{k=1}^K \pi_k = 1} \prod\limits_{k=1}^K \pi_k^{N_k} \frac{\Gamma\br{\sum_{k=1}^K\alpha_k}}{\prod_{k=1}^K \Gamma\alpha_k} \prod\limits_{k=1}^K \pi_k^{\alpha_k-1} d\pmb{\pi}
+\end{equation*}
+\begin{equation}\label{marg_int}
+    \implies p(y) = \frac{\Gamma\br{\sum\limits_{k=1}^K\alpha_k}}{\prod_{k=1}^K \Gamma\alpha_k} \int\limits_{\sum_{k=1}^K \pi_k = 1} \prod\limits_{k=1}^K \pi_k^{N_k+\alpha_k-1} d\pmb{\pi}
+\end{equation}
+
+We know that Dirchlet and Multinoulli are Conjugate Distributions, we can obtain $p(y)$ without actually solving the integral. Let $\beta_k = N_k+\alpha_k$, we can get a Dirchlet distribution with hyper-parameter $\pmb{\beta}$:
+
+\begin{equation*}
+    p(\pmb{\pi} | \pmb{\beta}) = \frac{\Gamma\br{\sum_{k=1}^K\beta_k}}{\prod_{k=1}^K \Gamma\beta_k} \prod\limits_{k=1}^K \pi_k^{\beta_k-1}
+\end{equation*}
+
+Since, this is a probability distribution, integrating it over all values of $\pmb{\pi}$ will give $1$ (subjected to the condition $\sum_{k=1}^K \pi_k =1 $).
+
+\begin{equation*}
+    \int p(\pmb{\pi} | \pmb{\beta}) d\pmb{\pi} = \int \frac{\Gamma\br{\sum_{k=1}^K\beta_k}}{\prod_{k=1}^K \Gamma\beta_k} \prod\limits_{k=1}^K \pi_k^{\beta_k-1} d\pmb{\pi} = 1
+\end{equation*}
+
+\begin{equation} \label{dir_integ}
+    \implies \int \prod\limits_{k=1}^K \pi_k^{\beta_k-1} d\pmb{\pi} = \frac{\prod_{k=1}^K \Gamma\beta_k}{\Gamma\br{\sum_{k=1}^K\beta_k}}
+\end{equation}
+
+Substituting \ref{dir_integ} in \ref{marg_int} we get:
+
+\begin{equation} \label{fin_marg}
+    p(y) = \frac{\bc{\Gamma\br{\sum\limits_{k=1}^K\alpha_k}}\bc{\prod_{k=1}^K \Gamma\br{N_k+\alpha_k}}}{\bc{\prod_{k=1}^K \Gamma\alpha_k} \bc{\Gamma\br{\sum_{k=1}^K\br{N_k+\alpha_k}}}}
+\end{equation}
+
+Thus, the full posterior distribution can be written as:
+
+\begin{equation*}
+    p(y) = \frac{\bc{\prod_{k=1}^K \Gamma\alpha_k} \bc{\Gamma\br{\sum_{k=1}^K\br{N_k+\alpha_k}}}}{\bc{\Gamma\br{\sum\limits_{k=1}^K\alpha_k}}\bc{\prod_{k=1}^K \Gamma\br{N_k+\alpha_k}}} \prod\limits_{k=1}^K \pi_k^{N_k} \frac{\Gamma\br{\sum_{k=1}^K\alpha_k}}{\prod_{k=1}^K \Gamma\alpha_k} \prod\limits_{k=1}^K \pi_k^{\alpha_k-1}
+\end{equation*}
+
+Simplifying we get:
+
+\begin{equation*}
+    \boxed
+    {
+       p(\pmb{\pi}|y) = \frac{\Gamma\br{\sum_{k=1}^K\br{N_k+\alpha_k}}}{\prod_{k=1}^K \Gamma\br{N_k+\alpha_k}} \prod\limits_{k=1}^K \pi_k^{\br{N_k+\alpha_k}-1}
+    }
+\end{equation*}
+with the constraint that $\sum_{k=1}^K \pi_k = 1$.
+
+\begin{center}
+    \noindent\fbox{\parbox{\textwidth}{\strut Both MAP and MLE estimates can be found from the Posterior directly. MAP distribution is nothing but the mode of this distribution. MLE can be found by taking a uniform prior (setting all $\alpha_k = 1$).}}
+\end{center}
+
+In order to calculate the mode, we replace $\pi_K = 1 - \sum_{k=1}^{K-1} \pi_k$ in order to account for the constraint $\sum_{k=1}^{K} \pi_k = 1$. Now, take negative log and let $\beta_k = N_k + \alpha_k - 1$.
+
+\begin{equation*}
+    -log(p(\pmb{\pi} | y)) = -\beta_klog(\pi_k) - \beta_Klog(1-\sum_{k=1}^{K-1}\pi_k)
+\end{equation*}
+
+Differentiating for k=1, \dots, K-1, and setting the derivatives to 0 we get $\frac{\beta_k}{\pi_k}=\frac{\beta_K}{1-\sum_{k=1}^{K-1} \pi_k} \implies \pi_k = \frac{\beta_k}{\beta_K}\pi_K$. Using $\sum_{k=1}^{K} \pi_k = 1$, we get $\pi_k = \frac{\beta_k}{\beta}$ where $\beta = N + \alpha - K$. This is the required MAP as obtained earlier.\\
+
+Setting $\alpha_k = 1$, we get $\beta_k = N_k \implies \pi_k = \frac{N_k}{N}$, the MLE estimate as derived earlier.
+
+\end{mlsolution}
+
+
+\end{document}
