@@ -180,7 +180,7 @@ Let's assume that negative examples are in minority, then if we make $C_{\textbf
 In order to perform step 1, we can calculate distances from all the cluster means and then assign the incoming point $\vx_n$ to the cluster whose cluster mean has the least distance from the incoming point. In other words, we can solve the following optimization problem:
 
 \begin{equation*}
-    \hat{k} = \text{arg} \min\limits_k ||\pmb{\mu_k} - \vx_n||
+    \hat{k} = \text{arg} \min\limits_k ||\pmb{\mu_k} - \vx_n||^2
 \end{equation*}
 
 After we perform Step 1 in an online setting, the gradient required for update will be with respect to $\vx_n$ only:
@@ -192,7 +192,7 @@ After we perform Step 1 in an online setting, the gradient required for update w
 Thus, update equation we use will be:
 
 \begin{equation*}
-    \pmb{\mu_{\hat{k}}} = (1-\eta)\pmb{\mu_{\hat{k}}} + \eta\vx_n
+    \pmb{\mu_{\hat{k}}}^{(t+1)} = (1-\eta)\pmb{\mu_{\hat{k}}}^{t} + \eta\vx_n
 \end{equation*}
 
 where $\eta$ is the learning rate. A good choice for it could be $\frac{1}{\cV[\hat{k}]}$, i.e., the inverse of the new total number of points in the cluster $\hat{k}$. The SGD based K-means algorithm can be summarised as:\\
@@ -305,8 +305,8 @@ The entire process can be summarised in the following algorithm:
 
 An interesting thing to note here is that similar to classic K-means, we have the Initialization and Updation phase but unlike classic K-means, we do not have the explicit Mean Computation step. The means are never explicitly calculated and the updates are made using the Kernel trick and number of cluster points directly. \\
 
-In case of classic K-means, we have to calculate $K$ distances for each of the $N$ inputs which can be done in $O(NDK)$ time for all inputs.
-For Kernel K-means, the Kernel function can be calculated in $O(D)$ time. So, from the update equation, time take to update using each input is $O(DK) + O(N_kDK) + O(N_k^2DK)$. So, for $N$ inputs, Kernel K-means has a $O(N^3DK)$ cost.
+In case of classic K-means, we have to calculate $K$ distances for each of the $N$ inputs which can be done in $O(ND)$ time for all inputs (per cluster) and $O(D)$ per input.
+For Kernel K-means, the Kernel function can be calculated in $O(D)$ time. So, from the update equation, time take to update using each input is $O(D) + O(N_kD) + O(N_k^2D)$. So, for $N$ inputs, Kernel K-means has a $O(N^3D)$ cost for all inputs and $O(N^2D)$ per input.
 
 \end{mlsolution}
 
@@ -340,9 +340,21 @@ For Kernel K-means, the Kernel function can be calculated in $O(D)$ time. So, fr
         \end{minipage}
         \caption{The plots for \texttt{binclassv2.txt}}
     \end{figure}
+    \pagebreak
+    The formulae used:
 
-    For both the datasets \texttt{binclass.txt} as well as \texttt{binclassv2.txt}, having separate covariance matrices for the 2 classes does a better job of classifying the points.
-    In general cases too, we expect having different covariance for each of the classes will do better. Having same covariance matrix for 2 classes means that the model produces a Linear Decision Boundary between them.
+    \begin{equation*}
+        \pmb{\mu_+} = \frac{\sum\limits_{n=1\;|\; y_n=1}^N \vx_n}{N_+} \quad \pmb{\mu_-} = \frac{\sum\limits_{n=1\;|\; y_n=-1}^N \vx_n}{N_-}
+    \end{equation*}
+    \begin{equation*}
+        \sigma_+^2 = \frac{\sum\limits_{n=1\;|\; y_n=1}^N || \vx_n - \pmb{\mu_+} ||^2}{DN_+}
+    \end{equation*}
+    \begin{equation*}
+        \sigma_-^2 = \frac{\sum\limits_{n=1\;|\; y_n=-1}^N || \vx_n - \pmb{\mu_-} ||^2}{DN_-}
+    \end{equation*}
+    \begin{equation*}
+        \sigma^2 = \frac{\sum\limits_{n=1\;|\; y_n=1}^N || \vx_n - \pmb{\mu_+} ||^2 + \sum\limits_{n=1\;|\; y_n=-1}^N || \vx_n - \pmb{\mu_-} ||^2}{DN}
+    \end{equation*}
 
     \begin{figure}[h]
         \centering
@@ -358,6 +370,10 @@ For Kernel K-means, the Kernel function can be calculated in $O(D)$ time. So, fr
         \end{minipage}
         \caption{SVM Plots generated using \textsl{scikit-learn} library.}
     \end{figure}
+
+    For both the datasets \texttt{binclass.txt} as well as \texttt{binclassv2.txt}, having separate covariance matrices for the 2 classes does a better job of classifying the points as the data is not linearly separable. In our case, the data has classes that are elliptical in shape.
+    In general cases too, we expect having different covariance for each of the classes will do better. Having same covariance matrix for 2 classes means that the model produces a Linear Decision Boundary between them. Same is the case of Linear SVM which produce a linear decision boundary as well. Linear SVM perform better is the data is linearly separable.
+
 
 \end{mlsolution}
 

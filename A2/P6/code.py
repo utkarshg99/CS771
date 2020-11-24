@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 
-path = './binclass.txt'
+path = './binclassv2.txt'
 data_file = open(path, 'r')
 lns = data_file.readlines()
 X=[]
@@ -32,16 +32,13 @@ def boundary(X, mu, sisq):
     for x in X:
         p1 = np.exp(-np.matmul(np.transpose(x-mu[0]), x-mu[0])/(2*sisq[0]))/sisq[0]
         p2 = np.exp(-np.matmul(np.transpose(x-mu[1]), x-mu[1])/(2*sisq[1]))/sisq[1]
-        if p1-p2>0:
-            Y.append(1)
-        else:
-            Y.append(-1)
+        Y.append(p1-p2)
     return Y
 
 # Plots the decision boundary
 def plot(Z):
     Z = np.array(Z).reshape(xx.shape)
-    plt.contour(xx, yy, Z)
+    plt.contour(xx, yy, Z, levels=[0])
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
     plt.scatter(x=np.transpose(X)[0], y=np.transpose(X)[1], s=4, c=["#ff0000" if y == 1 else "#0000ff" for y in Y])
@@ -50,7 +47,7 @@ def plot(Z):
 def exp1():
     # MLE of Mean
     mu = np.zeros((K, D))
-    # Sq Root of Det(MLE of Covariance)
+    # Sigma^2
     sisq = np.zeros(K)
     Xseg = [[] for _ in range(K)]
 
@@ -69,17 +66,17 @@ def exp1():
         mu[i] = np.sum(Xseg[i], 0)/len(Xseg[i])
         for x in Xseg[i]:
             sisq[i] += np.matmul(np.transpose(x-mu[i]), (x-mu[i]))
-        sisq[i] = sisq[i]/(2*len(Xseg[i]))
+        sisq[i] = sisq[i]/(D*len(Xseg[i]))
         Xseg[i] = np.transpose(Xseg[i])
-    
     Z = boundary(np.c_[xx.ravel(), yy.ravel()], mu, sisq)
     plot(Z)
+    print(sisq)
 
 def exp2():
     # MLE of Mean
     mu = np.zeros((K, D))
-    # Sq Root of Det(MLE of Covariance)
-    sisq = np.ones(K)*0.1
+    # Sigma^2
+    sisq = np.zeros(K)
     Xseg = [[] for _ in range(K)]
 
     i = 0
@@ -95,17 +92,30 @@ def exp2():
     # Estimate the mean and covariance(s)
     for i in range(K):
         mu[i] = np.sum(Xseg[i], 0)/len(Xseg[i])
-    Xseg[i] = np.transpose(Xseg[i])
+        for x in Xseg[i]:
+            sisq[0] += np.matmul(np.transpose(x-mu[i]), (x-mu[i]))
+        Xseg[i] = np.transpose(Xseg[i])
+    sisq[0]/=(D*N)
+    for i in range(K):
+        sisq[i] = sisq[0]
     
     Z = boundary(np.c_[xx.ravel(), yy.ravel()], mu, sisq)
     plot(Z)
+    print(sisq)
 
 def exp3():
     # The SVM Part
     model = SVC(kernel='linear', C=1)
     clf = model.fit(X, Y)
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-    plot(Z)
+    Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+
+    # Plotting the data points with the support vectors and decision boundaries
+    Z = np.array(Z).reshape(xx.shape)
+    plt.contour(xx, yy, Z, levels=[-1, 0, 1], linestyles=['--', '-', '--'])
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.scatter(x=np.transpose(X)[0], y=np.transpose(X)[1], s=4, c=["#ff0000" if y == 1 else "#0000ff" for y in Y])
+    plt.show()
 
 # Generative Classification with different Covariance Martices
 exp1()
